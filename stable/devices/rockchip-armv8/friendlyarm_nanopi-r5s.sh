@@ -11,11 +11,11 @@ DEVICE_NAME="FriendlyARM NanoPi R5S"
 
 # Network configuration for R5S (3 ports) - 差异化配置
 configure_network() {
-    local custom_ip=${1:-"192.168.1.1"}
-    local gateway=${2:-"192.168.1.1"}
-    local dns_servers=${3:-"8.8.8.8 8.8.4.4"}
+    local custom_ip=${1}
+    local gateway=${2}
+    local dns_servers=${3}
     
-    cat > files/etc/config/network << EOF
+    cat > ${ROOT_DIR}/files/etc/config/network << EOF
 config interface 'loopback'
     option ifname 'lo'
     option proto 'static'
@@ -37,7 +37,6 @@ config interface 'lan'
     option proto 'static'
     option ipaddr '$custom_ip'
     option netmask '255.255.255.0'
-    option ip6assign '60'
     option gateway '$gateway'
     list dns '$dns_servers'
 EOF

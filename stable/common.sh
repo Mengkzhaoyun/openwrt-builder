@@ -9,7 +9,7 @@ configure_network() {
     local gateway=${2:-"192.168.1.1"}
     local dns_servers=${3:-"192.168.1.1"}
     
-    cat > files/etc/config/network << EOF
+    cat > "${ROOT_DIR}/files/etc/config/network" << EOF
 config interface 'loopback'
     option ifname 'lo'
     option proto 'static'
@@ -47,15 +47,15 @@ configure_dns() {
     echo "设置DNS服务器: $dns_servers"
     
     # 创建resolv.conf
-    cat > files/etc/resolv.conf << EOF
+    cat > "${ROOT_DIR}/files/etc/resolv.conf" << EOF
 # 自定义DNS配置
 EOF
     for dns in $dns_servers; do
-        echo "nameserver $dns" >> files/etc/resolv.conf
+        echo "nameserver $dns" >> "${ROOT_DIR}/files/etc/resolv.conf"
     done
     
     # 配置dhcp和dns
-    cat > files/etc/config/dhcp << EOF
+    cat > "${ROOT_DIR}/files/etc/config/dhcp" << EOF
 config dnsmasq
 	option domainneeded '1'
 	option boguspriv '1'
@@ -79,14 +79,14 @@ EOF
     
     # 添加上游DNS服务器
     for dns in $dns_servers; do
-        cat >> files/etc/config/dhcp << EOF
+        cat >> "${ROOT_DIR}/files/etc/config/dhcp" << EOF
 
 config dnsmasq
 	list server '$dns'
 EOF
     done
     
-    cat >> files/etc/config/dhcp << EOF
+    cat >> "${ROOT_DIR}/files/etc/config/dhcp" << EOF
 
 config dhcp 'lan'
 	option interface 'lan'
@@ -114,11 +114,15 @@ EOF
 configure_root_password() {
     local root_password="$1"
     
+    echo "配置root密码 - 密码长度: ${#root_password}"
+    
     if [ -n "$root_password" ]; then
         echo "设置root密码..."
         # 生成密码哈希
         PASSWORD_HASH=$(openssl passwd -1 "$root_password")
-        cat > files/etc/shadow << EOF
+        echo "密码哈希生成成功: ${PASSWORD_HASH:0:20}..."
+        
+        cat > "${ROOT_DIR}/files/etc/shadow" << EOF
 root:$PASSWORD_HASH:19797:0:99999:7:::
 daemon:*:0:0:99999:7:::
 ftp:*:0:0:99999:7:::
@@ -129,7 +133,10 @@ dnsmasq:x:0:0:99999:7:::
 logd:x:0:0:99999:7:::
 ubus:x:0:0:99999:7:::
 EOF
-        chmod 600 files/etc/shadow
+        chmod 600 "${ROOT_DIR}/files/etc/shadow"
+        echo "root密码配置完成"
+    else
+        echo "警告: ROOT_PASSWORD 为空，跳过密码设置"
     fi
 }
 
@@ -139,13 +146,13 @@ configure_ssh_key() {
     
     if [ -n "$root_passkey" ]; then
         echo "设置SSH公钥认证..."
-        mkdir -p files/etc/dropbear
-        echo "$root_passkey" > files/etc/dropbear/authorized_keys
-        chmod 600 files/etc/dropbear/authorized_keys
+        mkdir -p "${ROOT_DIR}/files/etc/dropbear"
+        echo "$root_passkey" > "${ROOT_DIR}/files/etc/dropbear/authorized_keys"
+        chmod 600 "${ROOT_DIR}/files/etc/dropbear/authorized_keys"
         
         # 禁用密码认证，只允许公钥认证
-        mkdir -p files/etc/config
-        cat >> files/etc/config/dropbear << EOF
+        mkdir -p "${ROOT_DIR}/files/etc/config"
+        cat >> "${ROOT_DIR}/files/etc/config/dropbear" << EOF
 
 config dropbear
 	option PasswordAuth 'off'
@@ -157,7 +164,8 @@ EOF
 
 # 通用防火墙配置函数
 configure_firewall() {
-    cat > files/etc/config/firewall << 'EOF'
+    # 使用环境变量或默认路径
+    cat > "${ROOT_DIR}/files/etc/config/firewall" << 'EOF'
 config defaults
     option syn_flood '1'
     option input 'ACCEPT'
@@ -174,3 +182,87 @@ config zone
     option forward 'ACCEPT'
 EOF
 }
+
+# 配置默认主机名
+configure_hostname() {
+    local hostname=${1:-"openwrt"}
+    echo "配置默认主机名为: $hostname"
+    mkdir -p "${ROOT_DIR}/files/etc/config"
+    
+    # 设置系统主机名
+    cat > "${ROOT_DIR}/files/etc/config/system" << EOF
+config system
+	option hostname '$hostname'
+	option timezone 'UTC'
+	option ttylogin '0'
+	option log_size '64'
+	option urandom_seed '0'
+
+config timeserver 'ntp'
+	option enabled '1'
+	option enable_server '0'
+	list server 'ntp.aliyun.com'
+	list server 'time1.cloud.tencent.com'
+	list server 'time.ustc.edu.cn'
+	list server 'cn.pool.ntp.org'
+EOF
+}
+
+# 配置bash为默认shell
+configure_bash_shell() {
+    echo "配置bash为默认shell..."
+    
+    # 创建profile配置，设置bash为默认shell
+    mkdir -p "${ROOT_DIR}/files/etc"
+    cat > "${ROOT_DIR}/files/etc/profile" << 'EOF'
+#!/bin/sh
+# /etc/profile: system-wide .profile file for the Bourne shell (sh(1))
+# and Bourne compatible shells (bash(1), ksh(1), ash(1), ...).
+
+export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+export PS1='\u@\h:\w\$ '
+
+# 如果bash可用，切换到bash
+if [ -x /bin/bash ] && [ "$0" != "/bin/bash" ]; then
+    export SHELL=/bin/bash
+    exec /bin/bash --login
+fi
+
+# 加载profile.d中的脚本
+if [ -d /etc/profile.d ]; then
+    for i in /etc/profile.d/*.sh; do
+        if [ -r $i ]; then
+            . $i
+        fi
+    done
+    unset i
+fi
+EOF
+
+    # 设置root用户默认使用bash
+    mkdir -p "${ROOT_DIR}/files/etc"
+    
+    # 创建一个脚本在系统启动时修改root用户的shell
+    mkdir -p "${ROOT_DIR}/files/etc/init.d"
+    cat > "${ROOT_DIR}/files/etc/init.d/set-bash-shell" << 'EOF'
+#!/bin/sh /etc/rc.common
+
+START=99
+
+start() {
+    # 修改root用户的默认shell为bash
+    if [ -x /bin/bash ]; then
+        sed -i 's|^root:.*:/bin/ash$|root:x:0:0:root:/root:/bin/bash|' /etc/passwd
+    fi
+}
+
+stop() {
+    return 0
+}
+EOF
+    chmod +x "${ROOT_DIR}/files/etc/init.d/set-bash-shell"
+}
+
+# 签名验证配置 - 已移除
+# 由于 ImageBuilder 不支持重编译 opkg，相关配置已移除
+
