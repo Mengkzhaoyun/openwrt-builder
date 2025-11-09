@@ -11,11 +11,12 @@ DEVICE_NAME="x86_64 Virtual Machine"
 
 # Network configuration for x86_64 VM (single port) - 虚拟机配置
 configure_network() {
-    local custom_ip=${1}
-    local gateway=${2}
-    local dns_servers=${3}
+    local custom_ip=${1:-"192.168.1.253"}
+    local gateway=${2:-"192.168.1.1"}
     
-    cat > ${ROOT_DIR}/files/etc/config/network << EOF
+    echo "配置网络: IP=$custom_ip, 网关=$gateway"
+    
+    cat > "${ROOT_DIR}/files/etc/config/network" << EOF
 config interface 'loopback'
     option ifname 'lo'
     option proto 'static'
@@ -36,8 +37,10 @@ config interface 'lan'
     option ipaddr '$custom_ip'
     option netmask '255.255.255.0'
     option gateway '$gateway'
-    list dns '$dns_servers'
+    list dns '$custom_ip'
 EOF
+    
+    echo "网络配置完成"
 }
 
 # Device-specific package additions

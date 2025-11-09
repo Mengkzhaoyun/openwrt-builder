@@ -25,9 +25,8 @@ if [ -z "$ROOT_PASSKEY" ]; then
 fi
 
 # 网络配置 - 使用默认值
-CUSTOM_IP="${CUSTOM_IP:-192.168.1.253}"
-GATEWAY="${GATEWAY:-192.168.1.1}"
-DNS_SERVERS="${DNS_SERVERS:-192.168.1.1}"
+NETWORK_IP="${NETWORK_IP:-192.168.1.253}"
+NETWORK_GATEWAY="${NETWORK_GATEWAY:-192.168.1.1}"
 
 # 从 PROFILE 中解析设备信息
 DEVICE_ARCH=$(echo "$PROFILE" | cut -d'/' -f1)
@@ -47,37 +46,10 @@ else
     DEVICE_PROFILE="$DEVICE_NAME"
 fi
 
-# 显示当前配置
-echo "设备配置: $PROFILE"
-echo "网络配置:"
-echo "  IP地址: $CUSTOM_IP"
-echo "  网关地址: $GATEWAY"
-echo "  DNS服务器: $DNS_SERVERS"
-echo ""
-
 mkdir -p "${ROOT_DIR}/files/etc/config"
 
 # 应用基础系统配置
-echo "应用系统配置..."
-
-# 配置网络（始终应用）
-configure_network "$CUSTOM_IP" "$GATEWAY" "$DNS_SERVERS"
-
-# 配置DNS（始终应用）
-configure_dns "$DNS_SERVERS"
-
-# 配置防火墙（始终应用）
-configure_firewall
-
-# 配置root密码（必需）
-configure_root_password "$ROOT_PASSWORD"
-
-# 配置SSH公钥认证（必需）
-configure_ssh_key "$ROOT_PASSKEY"
-
-# 配置主机名和bash shell
-configure_hostname "openwrt"
-configure_bash_shell
+apply_all_configs "$NETWORK_IP" "$NETWORK_GATEWAY" "$ROOT_PASSWORD" "$ROOT_PASSKEY" "openwrt"
 
 # 加载软件包配置
 [ -x "${ROOT_DIR}/src/packages.sh" ] && source "${ROOT_DIR}/src/packages.sh"
@@ -90,6 +62,8 @@ mkdir -p ${ROOT_DIR}/bin/packages
 [ -x "${ROOT_DIR}/src/packages/mosdns.sh" ] && "${ROOT_DIR}/src/packages/mosdns.sh"
 [ -x "${ROOT_DIR}/src/packages/wolplus.sh" ] && "${ROOT_DIR}/src/packages/wolplus.sh"
 [ -x "${ROOT_DIR}/src/packages/nginx.sh" ] && "${ROOT_DIR}/src/packages/nginx.sh"
+[ -x "${ROOT_DIR}/src/packages/ttyd.sh" ] && "${ROOT_DIR}/src/packages/ttyd.sh"
+[ -x "${ROOT_DIR}/src/packages/frpc.sh" ] && "${ROOT_DIR}/src/packages/frpc.sh"
 
 # 添加设备特定的软件包
 if command -v add_device_packages >/dev/null 2>&1; then

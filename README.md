@@ -19,7 +19,6 @@ docker run --rm -it \
 ## x86_64 虚拟机版本（Hyper-V / QNAP 测试）
 
 ```bash
-# 构建 x86_64 版本，可在虚拟机中运行
 rm -rf $PWD/.tmp && \
 mkdir -p $PWD/.tmp/bin $PWD/.tmp/files && \
 docker run --rm -it \

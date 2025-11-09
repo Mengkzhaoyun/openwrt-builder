@@ -64,5 +64,41 @@ else
     fi
 fi
 
+# 创建 MosDNS 配置文件
+cat > "${ROOT_DIR}/files/etc/config/mosdns" << 'EOF'
+
+config mosdns 'config'
+	option enabled '0'
+	option listen_port '5335'
+	option geo_auto_update '1'
+	option geo_update_week_time '0'
+	option geo_update_day_time '2'
+	option configfile '/var/etc/mosdns.json'
+	option log_level 'info'
+	option log_file '/var/log/mosdns.log'
+	option cache '1'
+	option concurrent '2'
+	option idle_timeout '30'
+	option minimal_ttl '0'
+	option maximum_ttl '0'
+	option enable_pipeline '1'
+	option insecure_skip_verify '1'
+	option dns_leak '0'
+	option cloudflare '0'
+	option listen_port_api '9091'
+	option bootstrap_dns '119.29.29.29'
+	option redirect '1'
+	option prefer_ipv4 '1'
+	option enable_ecs_remote '0'
+	option cache_size '8000'
+	option lazy_cache_ttl '86400'
+	option dump_file '0'
+	option geoip_type 'geoip-only-cn-private'
+	list remote_dns 'tls://8.8.8.8'
+	list remote_dns 'tls://1.1.1.1'
+	option local_dns_redirect '1'
+
+EOF
+
 echo "MosDNS 下载完成，文件保存在 bin/packages/ 目录"
 ls -la ${ROOT_DIR}/bin/packages/luci-app-mosdns*
