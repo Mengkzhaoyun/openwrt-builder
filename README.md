@@ -13,7 +13,7 @@ docker run --rm -it \
   -e ROOT_PASSKEY="$OPENWRT_ROOT_PASSKEY" \
   -e PROFILE="rockchip-armv8/friendlyarm_nanopi-r5s" \
   registry.cn-qingdao.aliyuncs.com/wod/openwrt-imagebuilder:rockchip-armv8-v24.10.4 \
-  /builder/src/build.sh
+  bash -c /builder/src/build.sh
 ```
 
 ## x86_64 虚拟机版本（Hyper-V / QNAP 测试）
@@ -29,7 +29,7 @@ docker run --rm -it \
   -e ROOT_PASSKEY="$OPENWRT_ROOT_PASSKEY" \
   -e PROFILE="x86_64/generic" \
   registry.cn-qingdao.aliyuncs.com/wod/openwrt-imagebuilder:x86-64-v24.10.4 \
-  /builder/src/build.sh
+  bash -c /builder/src/build.sh
 ```
 
 ### 虚拟机使用方法
