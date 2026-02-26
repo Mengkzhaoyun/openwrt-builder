@@ -12,7 +12,7 @@ docker run --rm -it \
   -e ROOT_PASSWORD="$OPENWRT_ROOT_PASSWORD" \
   -e ROOT_PASSKEY="$OPENWRT_ROOT_PASSKEY" \
   -e PROFILE="rockchip-armv8/friendlyarm_nanopi-r5s" \
-  registry.cn-qingdao.aliyuncs.com/wod/openwrt-imagebuilder:rockchip-armv8-v24.10.4 \
+  registry.cn-qingdao.aliyuncs.com/wod/openwrt-imagebuilder:rockchip-armv8-v24.10.5 \
   bash -c /builder/src/build.sh
 ```
 
@@ -28,7 +28,7 @@ docker run --rm -it \
   -e ROOT_PASSWORD="$OPENWRT_ROOT_PASSWORD" \
   -e ROOT_PASSKEY="$OPENWRT_ROOT_PASSKEY" \
   -e PROFILE="x86_64/generic" \
-  registry.cn-qingdao.aliyuncs.com/wod/openwrt-imagebuilder:x86-64-v24.10.4 \
+  registry.cn-qingdao.aliyuncs.com/wod/openwrt-imagebuilder:x86-64-v24.10.5 \
   bash -c /builder/src/build.sh
 ```
 
@@ -39,7 +39,7 @@ docker run --rm -it \
 ```bash
 # 设置目录变量
 OPENWRT_DIR="$PWD/.tmp/bin/targets/x86/64" && \
-OPENWRT_VERSION=24.10.4 && \
+OPENWRT_VERSION=24.10.5 && \
 rm -rf ${OPENWRT_DIR}/openwrt-${OPENWRT_VERSION}-x86-64-generic-ext4-combined.img && \
 rm -rf ${OPENWRT_DIR}/openwrt-${OPENWRT_VERSION}-x86-64-generic-ext4-combined.vhdx && \
 { gunzip -c "${OPENWRT_DIR}/openwrt-${OPENWRT_VERSION}-x86-64-generic-ext4-combined.img.gz" > "${OPENWRT_DIR}/openwrt-${OPENWRT_VERSION}-x86-64-generic-ext4-combined.img" 2>/dev/null || true; } && \
