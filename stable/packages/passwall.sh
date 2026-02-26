@@ -25,65 +25,53 @@ cd ${ROOT_DIR}/bin/packages
 
 # 获取最新版本号
 echo "获取 PassWall2 最新版本..."
-LATEST_VERSION=$(curl -s https://api.github.com/repos/xiaorouji/openwrt-passwall2/releases/latest | grep '"tag_name"' | cut -d'"' -f4)
+LATEST_VERSION=$(curl -s https://api.github.com/repos/Openwrt-Passwall/openwrt-passwall2/releases/latest | grep '"tag_name"' | cut -d'"' -f4)
 echo "最新版本: $LATEST_VERSION"
 
-# 下载 PassWall2 主程序 (适用于 OpenWrt 24.10)
-# 从 GitHub API 获取实际的文件名，而不是猜测格式
-
+# 从 GitHub API 获取实际的文件名
 echo "获取 PassWall2 实际文件名..."
+RELEASE_FILES=$(curl -s "https://api.github.com/repos/Openwrt-Passwall/openwrt-passwall2/releases/latest" | grep '"name"' | grep '\.ipk"' | cut -d'"' -f4)
 
-# 获取 release 中的所有文件名
-RELEASE_FILES=$(curl -s "https://api.github.com/repos/xiaorouji/openwrt-passwall2/releases/latest" | grep '"name"' | grep '\.ipk"' | cut -d'"' -f4)
+# 搜索匹配的主程序文件 (luci-app-passwall2_*_all.ipk)
+PASSWALL_MAIN=$(echo "$RELEASE_FILES" | grep "^luci-app-passwall2_.*_all\.ipk$" | head -1)
 
-# 搜索匹配的主程序文件
-PASSWALL_MAIN=$(echo "$RELEASE_FILES" | grep "luci-24.10_luci-app-passwall2_.*_all.ipk" | head -1)
-
-# 搜索匹配的语言包文件  
-PASSWALL_LANG=$(echo "$RELEASE_FILES" | grep "luci-24.10_luci-i18n-passwall2-zh-cn_.*_all.ipk" | head -1)
+# 搜索匹配的语言包文件 (luci-i18n-passwall2-zh-cn_*_all.ipk)
+PASSWALL_LANG=$(echo "$RELEASE_FILES" | grep "^luci-i18n-passwall2-zh-cn_.*_all\.ipk$" | head -1)
 
 echo "找到主程序文件: $PASSWALL_MAIN"
 echo "找到语言包文件: $PASSWALL_LANG"
 
-if [ -z "$PASSWALL_MAIN" ] || [ -z "$PASSWALL_LANG" ]; then
-    echo "警告: 未找到匹配的 PassWall2 文件，跳过下载"
+if [ -z "$PASSWALL_MAIN" ]; then
+    echo "警告: 未找到 PassWall2 主程序文件，跳过下载"
     echo "可用文件列表:"
     echo "$RELEASE_FILES"
-    exit 0
-fi
-
-# 生成重命名后的文件名（完全去掉 luci-24.10_ 前缀）
-PASSWALL_MAIN_RENAMED=$(echo "$PASSWALL_MAIN" | sed 's/luci-24\.10_//')
-PASSWALL_LANG_RENAMED=$(echo "$PASSWALL_LANG" | sed 's/luci-24\.10_//')
-
-echo "重命名后的主程序文件: $PASSWALL_MAIN_RENAMED"
-echo "重命名后的语言包文件: $PASSWALL_LANG_RENAMED"
-
-# 下载主程序
-if [ -f "$PASSWALL_MAIN_RENAMED" ]; then
-    echo "PassWall2 主程序已存在于缓存中，跳过下载: $PASSWALL_MAIN_RENAMED"
 else
-    echo "下载 PassWall2 主程序..."
-    if wget "https://github.com/xiaorouji/openwrt-passwall2/releases/download/${LATEST_VERSION}/$PASSWALL_MAIN"; then
-        echo "重命名主程序文件: $PASSWALL_MAIN -> $PASSWALL_MAIN_RENAMED"
-        mv "$PASSWALL_MAIN" "$PASSWALL_MAIN_RENAMED"
-        echo "PassWall2 主程序下载并重命名成功"
+    # 下载主程序
+    if [ -f "$PASSWALL_MAIN" ]; then
+        echo "PassWall2 主程序已存在于缓存中，跳过下载: $PASSWALL_MAIN"
     else
-        echo "警告: PassWall2 主程序下载失败"
+        echo "下载 PassWall2 主程序..."
+        if wget "https://github.com/Openwrt-Passwall/openwrt-passwall2/releases/download/${LATEST_VERSION}/$PASSWALL_MAIN"; then
+            echo "PassWall2 主程序下载成功"
+        else
+            echo "警告: PassWall2 主程序下载失败"
+        fi
     fi
 fi
 
-# 下载中文语言包
-if [ -f "$PASSWALL_LANG_RENAMED" ]; then
-    echo "PassWall2 中文语言包已存在于缓存中，跳过下载: $PASSWALL_LANG_RENAMED"
+if [ -z "$PASSWALL_LANG" ]; then
+    echo "警告: 未找到 PassWall2 语言包文件"
 else
-    echo "下载 PassWall2 中文语言包..."
-    if wget "https://github.com/xiaorouji/openwrt-passwall2/releases/download/${LATEST_VERSION}/$PASSWALL_LANG"; then
-        echo "重命名语言包文件: $PASSWALL_LANG -> $PASSWALL_LANG_RENAMED"
-        mv "$PASSWALL_LANG" "$PASSWALL_LANG_RENAMED"
-        echo "PassWall2 中文语言包下载并重命名成功"
+    # 下载中文语言包
+    if [ -f "$PASSWALL_LANG" ]; then
+        echo "PassWall2 中文语言包已存在于缓存中，跳过下载: $PASSWALL_LANG"
     else
-        echo "警告: PassWall2 中文语言包下载失败"
+        echo "下载 PassWall2 中文语言包..."
+        if wget "https://github.com/Openwrt-Passwall/openwrt-passwall2/releases/download/${LATEST_VERSION}/$PASSWALL_LANG"; then
+            echo "PassWall2 中文语言包下载成功"
+        else
+            echo "警告: PassWall2 中文语言包下载失败"
+        fi
     fi
 fi
 
@@ -102,7 +90,11 @@ if [ -n "$DEPS_FILE" ]; then
     if [ -f "$DEPS_FILE" ]; then
         echo "PassWall2 依赖包已存在，跳过下载: $DEPS_FILE"
     else
-        wget "https://github.com/xiaorouji/openwrt-passwall2/releases/download/${LATEST_VERSION}/$DEPS_FILE"
+        if wget "https://github.com/Openwrt-Passwall/openwrt-passwall2/releases/download/${LATEST_VERSION}/$DEPS_FILE"; then
+            echo "依赖包下载成功"
+        else
+            echo "警告: 依赖包下载失败，尝试继续..."
+        fi
     fi
     
     if [ -f "$DEPS_FILE" ]; then
@@ -133,4 +125,5 @@ if [ -n "$DEPS_FILE" ]; then
 fi
 
 echo "PassWall2 下载完成，文件保存在 bin/packages/ 目录"
-ls -la ${ROOT_DIR}/bin/packages/luci-app-passwall2*
+ls -la ${ROOT_DIR}/bin/packages/luci-app-passwall2* 2>/dev/null || echo "未找到 PassWall2 主程序文件"
+ls -la ${ROOT_DIR}/bin/packages/luci-i18n-passwall2* 2>/dev/null || echo "未找到 PassWall2 语言包文件"

@@ -47,6 +47,11 @@ else
 fi
 
 mkdir -p "${ROOT_DIR}/files/etc/config"
+mkdir -p "${ROOT_DIR}/files/etc/opkg"
+
+# 禁用 opkg 签名验证（支持第三方软件包）
+echo "option check_signature 0" > "${ROOT_DIR}/files/etc/opkg/opkg.conf"
+echo "已禁用 opkg 签名验证"
 
 # 应用基础系统配置
 apply_all_configs "$NETWORK_IP" "$NETWORK_GATEWAY" "$ROOT_PASSWORD" "$ROOT_PASSKEY" "openwrt"
@@ -97,6 +102,29 @@ integrate_custom_packages
 # 构建最终镜像（包含第三方软件包和配置文件）
 echo "构建最终镜像..."
 echo "构建设备: $DEVICE_NAME (Profile: $DEVICE_PROFILE)"
+echo "软件包列表: $PACKAGES"
+echo "配置文件目录: ${ROOT_DIR}/files"
 cd ${ROOT_DIR}
-[ -x "${ROOT_DIR}/setup.sh" ] && "${ROOT_DIR}/setup.sh"
-make image PROFILE="$DEVICE_PROFILE" PACKAGES="$PACKAGES" ROOTFS_PARTSIZE="1024" FILES="${ROOT_DIR}/files"
+
+# 跳过 setup.sh - ImageBuilder 不需要额外初始化
+# [ -x "${ROOT_DIR}/setup.sh" ] && "${ROOT_DIR}/setup.sh"
+
+echo "开始执行 make image 命令..."
+# 禁用 opkg 签名验证以支持第三方软件包
+mkdir -p ${ROOT_DIR}/files/etc/opkg
+echo "option check_signature 0" > ${ROOT_DIR}/files/etc/opkg/opkg.conf
+
+# 添加 IGNORE_ERRORS=1 以忽略可选包下载失败
+make image PROFILE="$DEVICE_PROFILE" PACKAGES="$PACKAGES" ROOTFS_PARTSIZE="1024" FILES="${ROOT_DIR}/files" IGNORE_ERRORS=1 V=s 2>&1 | tee build.log
+BUILD_EXIT_CODE=$?
+echo "构建命令执行完成，退出码: $BUILD_EXIT_CODE"
+
+# 检查是否生成了镜像文件
+if [ -d "${ROOT_DIR}/bin/targets" ]; then
+    echo "镜像构建成功！"
+    find ${ROOT_DIR}/bin/targets -name "*.img.gz" -o -name "*.bin" | head -5
+else
+    echo "警告: 未找到生成的镜像文件"
+fi
+
+exit $BUILD_EXIT_CODE

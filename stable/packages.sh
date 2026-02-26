@@ -55,7 +55,7 @@ PACKAGES="$PACKAGES luci-lib-ipkg"                  # LuCI IPKG 库
 PACKAGES="$PACKAGES wget-ssl"          # 支持SSL的wget
 PACKAGES="$PACKAGES nano"              # 文本编辑器
 PACKAGES="$PACKAGES htop"              # 系统监控工具
-PACKAGES="$PACKAGES iperf3"            # 网络性能测试
+# PACKAGES="$PACKAGES iperf3"            # 网络性能测试 (可能下载失败，已禁用)
 PACKAGES="$PACKAGES tcpdump"           # 网络抓包工具
 # PACKAGES="$PACKAGES wireguard-tools"   # WireGuard VPN工具
 
