@@ -40,15 +40,15 @@ configure_ssh_key() {
         echo "$root_passkey" > "${ROOT_DIR}/files/etc/dropbear/authorized_keys"
         chmod 600 "${ROOT_DIR}/files/etc/dropbear/authorized_keys"
         
-        # 禁用密码认证，只允许公钥认证
+        # 允许密码和公钥认证同时使用
         mkdir -p "${ROOT_DIR}/files/etc/config"
         cat >> "${ROOT_DIR}/files/etc/config/dropbear" << EOF
 
 config dropbear
-	option PasswordAuth 'off'
-	option RootPasswordAuth 'off'
+	option PasswordAuth 'on'
+	option RootPasswordAuth 'on'
 	option Port '22'
 EOF
-        echo "SSH公钥认证配置完成"
+        echo "SSH公钥认证配置完成（密码认证已启用）"
     fi
 }
