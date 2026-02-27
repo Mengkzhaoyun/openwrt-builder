@@ -64,6 +64,7 @@ echo "下载第三方软件包..."
 mkdir -p ${ROOT_DIR}/bin/packages
 [ -x "${ROOT_DIR}/src/packages/argon.sh" ] && "${ROOT_DIR}/src/packages/argon.sh"
 [ -x "${ROOT_DIR}/src/packages/passwall.sh" ] && "${ROOT_DIR}/src/packages/passwall.sh"
+[ -x "${ROOT_DIR}/src/packages/openclash.sh" ] && "${ROOT_DIR}/src/packages/openclash.sh"
 [ -x "${ROOT_DIR}/src/packages/mosdns.sh" ] && "${ROOT_DIR}/src/packages/mosdns.sh"
 [ -x "${ROOT_DIR}/src/packages/wolplus.sh" ] && "${ROOT_DIR}/src/packages/wolplus.sh"
 [ -x "${ROOT_DIR}/src/packages/nginx.sh" ] && "${ROOT_DIR}/src/packages/nginx.sh"
