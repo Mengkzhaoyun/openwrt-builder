@@ -64,7 +64,6 @@ echo "下载第三方软件包..."
 mkdir -p ${ROOT_DIR}/bin/packages
 [ -x "${ROOT_DIR}/src/packages/argon.sh" ] && "${ROOT_DIR}/src/packages/argon.sh"
 [ -x "${ROOT_DIR}/src/packages/openclash.sh" ] && "${ROOT_DIR}/src/packages/openclash.sh"
-[ -x "${ROOT_DIR}/src/packages/wolplus.sh" ] && "${ROOT_DIR}/src/packages/wolplus.sh"
 [ -x "${ROOT_DIR}/src/packages/nginx.sh" ] && "${ROOT_DIR}/src/packages/nginx.sh"
 [ -x "${ROOT_DIR}/src/packages/ttyd.sh" ] && "${ROOT_DIR}/src/packages/ttyd.sh"
 [ -x "${ROOT_DIR}/src/packages/frpc.sh" ] && "${ROOT_DIR}/src/packages/frpc.sh"
@@ -112,6 +111,15 @@ echo "开始执行 make image 命令..."
 # 禁用 opkg 签名验证以支持第三方软件包
 mkdir -p ${ROOT_DIR}/files/etc/opkg
 echo "option check_signature 0" > ${ROOT_DIR}/files/etc/opkg/opkg.conf
+
+# 替换官方源为清华 TUNA 镜像源加速下载
+echo "替换官方源为清华 TUNA 镜像源加速下载..."
+if [ -f "${ROOT_DIR}/repositories" ]; then
+    sed -i 's/downloads.openwrt.org/mirrors.tuna.tsinghua.edu.cn\/openwrt/g' "${ROOT_DIR}/repositories"
+fi
+if [ -f "${ROOT_DIR}/repositories.conf" ]; then
+    sed -i 's/downloads.openwrt.org/mirrors.tuna.tsinghua.edu.cn\/openwrt/g' "${ROOT_DIR}/repositories.conf"
+fi
 
 # 添加 IGNORE_ERRORS=1 以忽略可选包下载失败
 make image PROFILE="$DEVICE_PROFILE" PACKAGES="$PACKAGES" ROOTFS_PARTSIZE="1024" FILES="${ROOT_DIR}/files" IGNORE_ERRORS=1 V=s 2>&1 | tee build.log

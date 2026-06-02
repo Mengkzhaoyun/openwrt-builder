@@ -45,20 +45,20 @@ mkdir -p ${ROOT_DIR}/files/etc/openclash
 
 cd ${ROOT_DIR}/bin/packages
 
-# ==================== 下载 OpenClash IPK ====================
+# ==================== 下载 OpenClash APK ====================
 echo "获取 OpenClash 最新版本..."
 OPENCLASH_VERSION=$(curl -s https://api.github.com/repos/vernesong/OpenClash/releases/latest | grep '"tag_name"' | cut -d'"' -f4)
 echo "OpenClash 最新版本: $OPENCLASH_VERSION"
 
-OPENCLASH_IPK="luci-app-openclash_${OPENCLASH_VERSION#v}_all.ipk"
-if [ -f "$OPENCLASH_IPK" ]; then
-    echo "OpenClash IPK 已存在于缓存中，跳过下载: $OPENCLASH_IPK"
+OPENCLASH_APK="luci-app-openclash-${OPENCLASH_VERSION#v}.apk"
+if [ -f "$OPENCLASH_APK" ]; then
+    echo "OpenClash APK 已存在于缓存中，跳过下载: $OPENCLASH_APK"
 else
-    echo "下载 OpenClash IPK..."
-    if wget "https://github.com/vernesong/OpenClash/releases/download/${OPENCLASH_VERSION}/${OPENCLASH_IPK}"; then
-        echo "OpenClash IPK 下载成功"
+    echo "下载 OpenClash APK..."
+    if wget "https://github.com/vernesong/OpenClash/releases/download/${OPENCLASH_VERSION}/${OPENCLASH_APK}"; then
+        echo "OpenClash APK 下载成功"
     else
-        echo "警告: OpenClash IPK 下载失败"
+        echo "警告: OpenClash APK 下载失败"
     fi
 fi
 
@@ -115,8 +115,8 @@ fi
 
 echo ""
 echo "==================== OpenClash 下载完成 ===================="
-echo "IPK 包:"
-ls -lh ${ROOT_DIR}/bin/packages/luci-app-openclash* 2>/dev/null || echo "  未找到 OpenClash IPK 文件"
+echo "APK 包:"
+ls -lh ${ROOT_DIR}/bin/packages/luci-app-openclash*.apk 2>/dev/null || echo "  未找到 OpenClash APK 文件"
 echo ""
 echo "Meta 内核:"
 ls -lh ${ROOT_DIR}/files/etc/openclash/core/clash_meta 2>/dev/null || echo "  未找到 Clash Meta 内核"

@@ -7,9 +7,9 @@ echo "开始下载 Argon Theme..."
 cd ${ROOT_DIR}/bin/packages
 
 # Argon Theme 版本信息
-ARGON_VERSION="v2.3.2"
-ARGON_DATE="r20250207"
-ARGON_FILE="luci-theme-argon_2.3.2-${ARGON_DATE}_all.ipk"
+ARGON_VERSION="v2.4.3"
+ARGON_DATE="r20250722"
+ARGON_FILE="luci-theme-argon-2.4.3-${ARGON_DATE}.apk"
 
 echo "下载 Argon Theme 版本: $ARGON_VERSION"
 

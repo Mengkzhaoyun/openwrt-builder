@@ -44,9 +44,8 @@ PACKAGES="$PACKAGES luci-app-frpc luci-i18n-frpc-zh-cn"         # FRP客户端
 PACKAGES="$PACKAGES luci-app-upnp luci-i18n-upnp-zh-cn"         # Upnp服务
 
 
-# Argon Theme 依赖包
-PACKAGES="$PACKAGES luci-compat"                    # LuCI 兼容性库
-PACKAGES="$PACKAGES luci-lib-ipkg"                  # LuCI IPKG 库
+# 唤醒工具
+PACKAGES="$PACKAGES luci-app-wol luci-i18n-wol-zh-cn"           # 网络唤醒
 
 # === 官方主题 ===
 # PACKAGES="$PACKAGES luci-theme-material"          # Material 现代化主题 (已禁用，使用 Argon)
@@ -69,14 +68,14 @@ integrate_custom_packages() {
         return 0
     fi
     
-    # 检查是否有 IPK 文件需要安装
-    if [ ! "$(ls -A ${ROOT_DIR}/bin/packages/ 2>/dev/null)" ]; then
-        echo "未找到第三方软件包文件"
+    # 检查是否有 APK 文件需要安装
+    if [ ! "$(ls -A ${ROOT_DIR}/bin/packages/*.apk 2>/dev/null)" ]; then
+        echo "未找到第三方 .apk 软件包文件"
         return 0
     fi
     
     echo "找到以下第三方软件包:"
-    ls -1 ${ROOT_DIR}/bin/packages/*.ipk | xargs -I {} basename {} .ipk
+    ls -1 ${ROOT_DIR}/bin/packages/*.apk | xargs -I {} basename {} .apk
     
     # 将第三方包集成到 ImageBuilder 的包目录中
     echo "集成第三方包到 ImageBuilder..."
@@ -95,43 +94,53 @@ integrate_custom_packages() {
             ;;
     esac
     
-    # 创建架构特定的包目录
-    local packages_dir="${ROOT_DIR}/packages/packages/${arch_dir}"
+    # 创建包目录（ImageBuilder 默认会加载此目录的 packages.adb）
+    local packages_dir="${ROOT_DIR}/packages"
     mkdir -p "$packages_dir"
     
-    # 复制第三方包到 ImageBuilder 的包目录
+    # 复制第三方包到该目录
     echo "复制第三方包到: $packages_dir"
-    cp ${ROOT_DIR}/bin/packages/*.ipk "$packages_dir/" 2>/dev/null || true
+    cp ${ROOT_DIR}/bin/packages/*.apk "$packages_dir/" 2>/dev/null || true
     
-    # 在包目录中生成索引
+    # 在包目录中生成 APK 索引
     cd "$packages_dir"
-    if command -v opkg-make-index >/dev/null 2>&1; then
-        echo "生成包索引..."
-        opkg-make-index . > Packages
-        gzip -c Packages > Packages.gz
+    if [ -x "${ROOT_DIR}/staging_dir/host/bin/apk" ]; then
+        echo "生成 APK 包索引 packages.adb..."
+        
+        # 解决 v24/v25 apk 不信任未签名本地源的问题
+        if [ ! -f "${ROOT_DIR}/keys/custom-build.priv" ]; then
+            echo "生成本地签名密钥..."
+            mkdir -p "${ROOT_DIR}/keys"
+            openssl ecparam -genkey -name prime256v1 -out "${ROOT_DIR}/keys/custom-build.priv"
+            openssl ec -in "${ROOT_DIR}/keys/custom-build.priv" -pubout -out "${ROOT_DIR}/keys/custom-build.pub"
+        fi
+        
+        # 生成带签名的索引，必须加上 --allow-untrusted 以允许混合官方未签名 base-files
+        ${ROOT_DIR}/staging_dir/host/bin/apk mkndx --allow-untrusted --sign-key "${ROOT_DIR}/keys/custom-build.priv" -o packages.adb *.apk || true
     else
-        echo "警告: 未找到 opkg-make-index，跳过索引生成"
+        echo "警告: 未找到 apk 命令，跳过索引生成"
     fi
     
     cd ${ROOT_DIR}
     echo "第三方包集成完成"
     
-    # 从 IPK 文件名提取包名并添加到 PACKAGES
+    # 从 APK 文件名提取包名并添加到 PACKAGES
     local custom_packages=""
     declare -A seen_packages  # 用于去重
     
-    for ipk in ${ROOT_DIR}/bin/packages/*.ipk; do
-        if [ -f "$ipk" ]; then
+    for apk_file in ${ROOT_DIR}/bin/packages/*.apk; do
+        if [ -f "$apk_file" ]; then
             # 提取包名（处理不同的命名格式）
-            local filename=$(basename "$ipk" .ipk)
+            local filename=$(basename "$apk_file" .apk)
             local pkg_name
             
-            # 处理标准的 package-name_version_arch.ipk 格式
-            if [[ "$filename" =~ ^([^_]+)_[0-9] ]]; then
+            # 处理标准的 package-name-version.apk 格式
+            if [[ "$filename" =~ ^([a-zA-Z0-9_-]+)-[0-9] ]]; then
                 pkg_name="${BASH_REMATCH[1]}"
-            # 处理复杂包名，如 package-name-with-dashes_version_arch.ipk
+            elif [[ "$filename" =~ ^([a-zA-Z0-9_-]+)_[0-9] ]]; then
+                pkg_name="${BASH_REMATCH[1]}"
             else
-                pkg_name=$(echo "$filename" | sed 's/_[0-9].*$//')
+                pkg_name=$(echo "$filename" | sed 's/-[0-9].*$//' | sed 's/_[0-9].*$//')
             fi
             
             # 去重处理
