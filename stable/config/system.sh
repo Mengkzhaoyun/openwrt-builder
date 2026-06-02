@@ -6,14 +6,17 @@ configure_hostname() {
     local hostname=${1:-"openwrt"}
     echo "配置默认主机名为: $hostname"
     mkdir -p "${ROOT_DIR}/files/etc/config"
-    
+    mkdir -p "${ROOT_DIR}/files/root/log"
+
     # 设置系统主机名
     cat > "${ROOT_DIR}/files/etc/config/system" << EOF
 config system
 	option hostname '$hostname'
-	option timezone 'UTC'
+	option timezone 'CST-8'
+	option zonename 'Asia/Shanghai'
 	option ttylogin '0'
-	option log_size '64'
+	option log_file '/root/log/syslog'
+	option log_size '10240'
 	option urandom_seed '0'
 
 config timeserver 'ntp'
