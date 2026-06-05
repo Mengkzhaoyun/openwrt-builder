@@ -35,6 +35,9 @@ configure_ssh_key() {
     local root_passkey="$1"
     
     if [ -n "$root_passkey" ]; then
+        # 去除可能存在的双引号
+        root_passkey=$(echo "$root_passkey" | tr -d '"')
+
         echo "设置SSH公钥认证..."
         mkdir -p "${ROOT_DIR}/files/etc/dropbear"
         echo "$root_passkey" > "${ROOT_DIR}/files/etc/dropbear/authorized_keys"

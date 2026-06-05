@@ -19,6 +19,7 @@ PACKAGES="$PACKAGES -uhttpd-mod-ubus"     # 移除uhttpd ubus模块
 PACKAGES="$PACKAGES nginx-ssl"            # 安装nginx (支持SSL)
 PACKAGES="$PACKAGES luci-nginx"           # LuCI nginx配置
 PACKAGES="$PACKAGES luci"                 # Web管理界面
+PACKAGES="$PACKAGES luci-compat"          # LuCI 兼容包(很多第三方插件必需)
 PACKAGES="$PACKAGES ca-bundle"            # CA证书包
 PACKAGES="$PACKAGES openssh-sftp-server"  # SFTP服务器
 
