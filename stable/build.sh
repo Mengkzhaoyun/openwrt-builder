@@ -121,6 +121,22 @@ if [ -f "${ROOT_DIR}/repositories.conf" ]; then
     sed -i 's/downloads.openwrt.org/mirrors.tuna.tsinghua.edu.cn\/openwrt/g' "${ROOT_DIR}/repositories.conf"
 fi
 
+# 预置国内 APK 镜像源到固件中（刷机后路由器默认使用清华源）
+echo "预置国内 APK 镜像源到固件..."
+mkdir -p "${ROOT_DIR}/files/etc/uci-defaults"
+cat > "${ROOT_DIR}/files/etc/uci-defaults/99-apk-mirror" << 'MIRROR_EOF'
+#!/bin/sh
+# 替换 APK 官方源为清华 TUNA 镜像源
+if [ -d /etc/apk/repositories.d ]; then
+    for f in /etc/apk/repositories.d/*.list; do
+        [ -f "$f" ] && sed -i 's|https://downloads.openwrt.org|https://mirrors.tuna.tsinghua.edu.cn/openwrt|g' "$f"
+    done
+fi
+exit 0
+MIRROR_EOF
+chmod +x "${ROOT_DIR}/files/etc/uci-defaults/99-apk-mirror"
+echo "APK 镜像源替换脚本已预置"
+
 # 添加 IGNORE_ERRORS=1 以忽略可选包下载失败
 make image PROFILE="$DEVICE_PROFILE" PACKAGES="$PACKAGES" ROOTFS_PARTSIZE="1024" FILES="${ROOT_DIR}/files" IGNORE_ERRORS=1 V=s 2>&1 | tee build.log
 BUILD_EXIT_CODE=$?

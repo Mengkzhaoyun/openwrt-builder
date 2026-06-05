@@ -50,7 +50,7 @@ configure_ssh_key() {
 config dropbear
 	option PasswordAuth 'on'
 	option RootPasswordAuth 'on'
-	option Port '22'
+	option Port '2222'
 EOF
         echo "SSH公钥认证配置完成（密码认证已启用）"
     fi
