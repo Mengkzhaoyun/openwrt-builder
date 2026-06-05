@@ -135,3 +135,33 @@ ARM 架构的机器没有 EFI/Legacy 的区别，固件通常会直接带有具�
 - 请寻找带有 **`sysupgrade.img.gz`** 后缀的文件。
 - 它既可以用来使用写盘工具烧录到 TF 卡/eMMC 作为全新安装，也可以在现有的 OpenWRT 后台 Web 界面中直接上传作为升级包。
 - **文件系统**依然遵循上述规则，普通用户**强烈建议选用 `squashfs`** 版本。
+
+---
+
+## ⚠️ 常见排错与避坑 (Troubleshooting)
+
+### 1. OpenClash 启动失败 / 内核不兼容 (Mihomo Core)
+
+**问题现象：**
+OpenClash 面板显示“未运行”，后台日志提示 `Core Start Failed` 或者反复出现以下错误：
+
+> `This program can only be run on AMD64 processors with v3 microarchitecture support.`
+
+**原因分析：**
+对于 x86_64 设备，如果你的 CPU 较老或不支持 AMD64 v3 微架构指令集，一旦误传了带有 `v3` 优化的内核文件（或在面板里错误升级），就会导致内核启动时直接崩溃。
+
+**正确安装 / 修复方法：**
+
+无论你是使用物理机还是虚拟机，**为确保万无一失的兼容性，强烈建议下载基础版本的 `amd64` (v1) 内核**，避开带有 `v3` 后缀的版本。
+
+**手动修复步骤（以 x86_64 为例）：**
+
+1. 访问 [Mihomo Release 页面](https://github.com/MetaCubeX/mihomo/releases)。
+2. 寻找类似 `mihomo-linux-amd64-vX.X.X.gz` 的文件（**注意：不要带 v2 或 v3 后缀**，如果要用 xhttp 节点，建议版本在 `v1.19.26` 及以上）。
+3. 下载并解压，将解压后的文件重命名为 `clash_meta`。
+4. 使用 SCP 或其他工具，将其上传并替换路由器中的旧内核：`/etc/openclash/core/clash_meta`。
+5. 通过 SSH 为其赋予执行权限并重启服务：
+   ```bash
+   chmod +x /etc/openclash/core/clash_meta
+   /etc/init.d/openclash restart
+   ```
