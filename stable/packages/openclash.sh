@@ -23,7 +23,7 @@ detect_arch() {
 detect_meta_arch() {
     case "$PROFILE" in
         *x86_64*|*x86-64*|x86/64)
-            echo "amd64"
+            echo "amd64-compatible"
             ;;
         *aarch64*|*arm64*|*rockchip-armv8*)
             echo "arm64"
