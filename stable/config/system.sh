@@ -27,6 +27,14 @@ config timeserver 'ntp'
 	list server 'time.ustc.edu.cn'
 	list server 'cn.pool.ntp.org'
 EOF
+    # 禁用系统 IPv6 (全局禁止)
+    mkdir -p "${ROOT_DIR}/files/etc/sysctl.d"
+    cat > "${ROOT_DIR}/files/etc/sysctl.d/99-disable-ipv6.conf" << EOF
+# Disable IPv6 completely
+net.ipv6.conf.all.disable_ipv6 = 1
+net.ipv6.conf.default.disable_ipv6 = 1
+net.ipv6.conf.lo.disable_ipv6 = 1
+EOF
     
     echo "主机名配置完成"
 }

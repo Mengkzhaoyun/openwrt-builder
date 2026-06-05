@@ -112,13 +112,13 @@ echo "开始执行 make image 命令..."
 mkdir -p ${ROOT_DIR}/files/etc/opkg
 echo "option check_signature 0" > ${ROOT_DIR}/files/etc/opkg/opkg.conf
 
-# 替换官方源为清华 TUNA 镜像源加速下载
-echo "替换官方源为清华 TUNA 镜像源加速下载..."
+# 替换官方源为腾讯云镜像源加速下载 (避免 IPv6 导致 wget/apk 报错)
+echo "替换官方源为腾讯云镜像源加速下载..."
 if [ -f "${ROOT_DIR}/repositories" ]; then
-    sed -i 's/downloads.openwrt.org/mirrors.tuna.tsinghua.edu.cn\/openwrt/g' "${ROOT_DIR}/repositories"
+    sed -i 's|https://downloads.openwrt.org|http://mirrors.cloud.tencent.com/openwrt|g' "${ROOT_DIR}/repositories"
 fi
 if [ -f "${ROOT_DIR}/repositories.conf" ]; then
-    sed -i 's/downloads.openwrt.org/mirrors.tuna.tsinghua.edu.cn\/openwrt/g' "${ROOT_DIR}/repositories.conf"
+    sed -i 's|https://downloads.openwrt.org|http://mirrors.cloud.tencent.com/openwrt|g' "${ROOT_DIR}/repositories.conf"
 fi
 
 # 预置国内 APK 镜像源到固件中（刷机后路由器默认使用清华源）

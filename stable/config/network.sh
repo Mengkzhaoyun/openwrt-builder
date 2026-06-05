@@ -16,7 +16,7 @@ config interface 'loopback'
     option netmask '255.0.0.0'
 
 config globals 'globals'
-    option ula_prefix 'fd12:3456:789a::/48'
+    # option ula_prefix 'fd12:3456:789a::/48' # Disable IPv6 ULA
 
 config device
     option name 'br-lan'
