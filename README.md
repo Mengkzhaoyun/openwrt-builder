@@ -161,7 +161,8 @@ OpenClash 面板显示“未运行”，后台日志提示 `Core Start Failed` �
 3. 下载并解压，将解压后的文件重命名为 `clash_meta`。
 4. 使用 SCP 或其他工具，将其上传并替换路由器中的旧内核：`/etc/openclash/core/clash_meta`。
 5. 通过 SSH 为其赋予执行权限并重启服务：
-   ```bash
-   chmod +x /etc/openclash/core/clash_meta
-   /etc/init.d/openclash restart
-   ```
+
+```bash
+chmod +x /etc/openclash/core/clash_meta
+/etc/init.d/openclash restart
+```
